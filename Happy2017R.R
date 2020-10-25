@@ -86,15 +86,56 @@ summary(lmMod)
 # we can reject the null hypothesis and conclude there is a linear relationship between GDP and child mortality
 # looking at the R-squared measure we can see that 46% of the variation in child mortality rates in 2017 can be explained by the GDP/economy. The other 54% is due to error or other vaiables not accounted for in this model. 
 
+# We can move on to another simple linear regression with the question: How does GDP impact Happiness score. 
 
+scatter.smooth(x=Happy2017$Economy..GDP.per.Capita., y=Happy2017$Happiness.Score, main="GDP impact on Happiness Score")
+# Looks like there is a relationship between GDP and happiness score. 
 
+# Testing for Homoscedasticity. 
+# Create linear model. 
+lmMod1 <- lm(Happiness.Score~Economy..GDP.per.Capita., data=Happy2017)
+# Create some graphs allowing for testing of homoscedasticity. 
 
+par(mfrow=c(2,2))
+plot(lmMod1)
+# Not bad, bottom left has slight upward trend. 
 
+# we'll run another test: the Breush-Pagan test. 
+lmtest::bptest(lmMod1)
+# our p-value is greater than .05 meaning we are ok, we have homoscedasticity. 
+# we can also check with the NCV test.
 
+car::ncvTest(lmMod1)
+# again we have passed the test!
 
+# Test for Homogeneity of Variance by looking at the boxes printed above. 
+# we'll also look at the GVLMA library for assumptions
+gvlma(lmMod1)
+# again, all assumptions acceptable. 
 
+# Test for outliers in X space. 
+CookD(lmMod1, group=NULL, plot=TRUE, idn=3, newwd=TRUE)
+# outliers in 33, 82, and 125
+# test for leverage.
 
+lev = hat(model.matrix(lmMod1))
+plot(lev)
+Happy2017[lev>.2,]
+# looks like we have no outliers with a leverage over .2 so we can conclude that we have no outliers in x space. 
 
+# Test for outliers in y Space. 
+car::outlierTest(lmMod1)
+# again our rstudent shows pretty high- 3.08 so we could have a problem with outliers in y space, but since our bonferroni p value is in not significant we'll leave it be. 
+
+# Test for outliers in x and y space. 
+summary(influence.measures(lmMod1))
+# again, for all the possible outliers, there are no values greater than 1, so we have no influential outliers in our data. 
+
+# interpreting the output for simple linear regression 
+summary(lmMod1)
+# with this we can conclude that the slope is not zero. There is sufficient evidence to lead us to believe GDP somehow influences the happiness score in all the countries in our data in 2017. 
+# here we have a t test that is significant at p < .001 meaning GDP is a significant predictor of Happiness score. 
+# Our adjusted R-squared tells us that 68% of the happiness score can be explained by GDP per capita. The other 32% is due to error or other variables not accounted for in this model. 
 
 
 
